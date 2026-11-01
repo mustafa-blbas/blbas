@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLBAZ - دروستکردنی پرسیاری تاقیکردنەوە</title>
+<style>
+:root{
+  --bg:#e9eef0; --ink:#17323a; --muted:#5d7279; --line:#c9d5d8;
+  --accent:#0f6b73; --accent-d:#0a4e55; --danger:#b3382c; --card:#fff;
+  --font:Calibri,"Segoe UI",Tahoma,"Noto Naskh Arabic","Noto Sans Arabic",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#10191c; --ink:#e3eef0; --muted:#93a9af; --line:#2c3f44; --card:#18262a; --accent:#3fb3bd; --accent-d:#6fd0d8;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.7}
+.app{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:20px;padding:20px;max-width:1300px;margin:auto}
+@media(max-width:900px){.app{grid-template-columns:1fr}}
+@media(max-width:600px){.app{padding:10px;gap:12px}.panel{padding:12px}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+h1{font-size:20px;margin:0 0 14px}
+h2{font-size:15px;margin:18px 0 8px;color:var(--accent)}
+label{display:block;font-size:13px;color:var(--muted);margin:8px 0 2px}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+textarea{resize:vertical;min-height:70px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:7px 12px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:var(--accent-d)}
+.qitem{border:1px solid var(--line);border-radius:8px;padding:10px;margin:10px 0}
+.qhead{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.qhead b{flex:1}
+.qhead button{padding:2px 9px}
+.qhead .del{color:var(--danger)}
+.qmark{width:90px!important}
+.total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:8px;font-weight:700}
+.fitbox{margin-top:10px;padding:10px 12px;border:1px solid var(--danger);border-radius:8px}
+.fitbox[hidden]{display:none}
+.fitbox p{margin:0;font-size:14px;color:var(--danger)}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.actions button{flex:1}
+.check{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px}
+.check input{width:auto}
+
+/* ورقة الامتحان */
+.preview{overflow:auto}
+.paper{background:#fff;color:#000;width:210mm;min-height:297mm;margin:0 auto;padding:0 16mm;box-shadow:0 2px 14px rgba(0,0,0,.18);font-family:var(--font);font-size:calc(16px*var(--k,1));line-height:1.55}
+.sheet{width:100%;border-collapse:collapse}.sheet td{padding:0}.sp{height:14mm}
+.p-head{position:relative;border:2.5px solid #000;padding:12px 26px;margin-bottom:10px;font-size:1.125em}
+.p-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;min-height:2em;align-items:center}
+.p-row>span:nth-child(1){text-align:right}
+.p-row>span:nth-child(2){text-align:center}
+.p-row>span:nth-child(3){text-align:left;padding-left:24px}
+.p-row.one{display:block;text-align:left;padding-left:24px;white-space:nowrap}
+.p-stu{display:flex;justify-content:flex-start;gap:16px;font-size:1em;padding:4px 4px 8px;border-bottom:2px solid #000}
+.p-stu .fill{display:inline-block;min-width:200px;border-bottom:1px dotted #000}
+.sub{display:flex;gap:6px;align-items:center;margin-top:6px}
+.sub .lb{flex:0 0 26px;text-align:center;font-weight:700;color:var(--accent)}
+.sub input.st{flex:1}.sub input.sm{width:64px;flex:0 0 64px}
+.sub button{padding:2px 9px}
+.addsub{margin-top:8px;font-size:13px}
+.p-note{border:1px solid #000;padding:6px 12px;margin-bottom:6px;font-size:0.938em;white-space:pre-wrap}
+.p-subs{margin:6px 22px 0 0}
+.p-sub{display:flex;justify-content:space-between;gap:12px;margin-top:4px;font-size:0.969em}
+.p-sub .t{white-space:pre-wrap;flex:1}
+.p-sub .m{font-size:0.812em;white-space:nowrap}
+.p-q{margin-top:16px;padding-bottom:10px;border-bottom:1px solid #000;break-inside:avoid;page-break-inside:avoid}
+.p-qhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.p-qtext{white-space:pre-wrap;font-size:1em;flex:1}
+.p-qtext strong{margin-left:6px}
+.p-mark{border:1.5px solid #000;border-radius:4px;padding:0 8px;font-size:0.875em;white-space:nowrap;height:fit-content}
+.p-lines{margin-top:6px}
+.p-lines i{display:block;height:26px;border-bottom:1px solid #999}
+.p-foot{margin-top:22px;break-inside:avoid;page-break-inside:avoid}
+.p-wish{text-align:center;font-size:1.15em;margin-bottom:34px}
+.p-sigs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;font-size:1.05em}
+.empty{text-align:center;color:#777;padding:40px 0}
+
+@page{size:A4;margin:0}
+@media print{
+  body{background:#fff}
+  .panel.editor,.noprint{display:none!important}
+  .app{display:block;padding:0;max-width:none}
+  .preview{padding:0;border:0;overflow:visible;background:none}
+  .panel.preview{border:0;padding:0}
+  .paper{box-shadow:none;width:auto;min-height:0;margin:0;padding:0 16mm}
+  .paper{transform:none!important}
+  .panel.preview{height:auto!important;overflow:visible!important}
+  thead{display:table-header-group}tfoot{display:table-footer-group}
+}
+</style>
+
+<style id="blbaz-lock-style">
+#blbazLock{position:fixed;inset:0;z-index:99999;background:#e9eef0;display:flex;align-items:center;justify-content:center;padding:20px}
+#blbazLock .box{width:min(420px,100%);background:#fff;border:1px solid #c9d5d8;border-radius:12px;padding:24px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+#blbazLock h2{margin:0 0 10px;color:#0f6b73}
+#blbazLock p{margin:0 0 14px;color:#5d7279}
+#blbazPass{width:100%;padding:10px;border:1px solid #c9d5d8;border-radius:7px;font:inherit;box-sizing:border-box}
+#blbazLock button{margin-top:10px;width:100%;padding:10px;border:0;border-radius:7px;background:#0f6b73;color:#fff;font:inherit;cursor:pointer}
+#blbazErr{display:none;color:#b3382c;margin-top:10px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="blbazLock">
+  <div class="box">
+    <h2>BLBAZ</h2>
+    <p>تکایە وشەی نهێنی بنووسە بۆ کردنەوەی سیستەمەکە</p>
+    <input id="blbazPass" type="password" autocomplete="off" placeholder="وشەی نهێنی">
+    <button type="button" onclick="blbazUnlock()">کردنەوە</button>
+    <div id="blbazErr">وشەی نهێنی هەڵەیە.</div>
+  </div>
+</div>
+
+<div class="app">
+  <section class="panel editor">
+    <h1>دروستکردنی پرسیاری تاقیکردنەوە</h1>
+
+    <h2>زانیاری گشتی</h2>
+    <label for="school">ناوی قوتابخانە</label>
+    <input id="school" placeholder="بۆ نموونە: قوتابخانەی ئاڤێستا">
+    <label for="title">ناونیشانی تاقیکردنەوە</label>
+    <input id="title" placeholder="پرسیارەکانی کۆتایی ساڵ">
+    <div class="row">
+      <div><label for="subject">بابەت</label><input id="subject" placeholder="بیرکاری"></div>
+      <div><label for="grade">پۆل</label><input id="grade" placeholder="چوارەمی سەرەتایی"></div>
+    </div>
+    <label for="year">ساڵی خوێندن</label>
+    <input id="year" placeholder="2024-2025">
+    <div class="row">
+      <div><label for="date">ڕێککەوت</label><input id="date" type="date"></div>
+      <div><label for="time">کات</label><input id="time" placeholder="2 سەعات"></div>
+    </div>
+
+    <h2>تێبینی مامۆستا (ئارەزوومەندانە)</h2>
+    <textarea id="note" placeholder="ئەگەر بەتاڵ بێت لەسەر کاغەزەکە دەرناکەوێت"></textarea>
+
+    <h2>پرسیارەکان</h2>
+    <div id="list"></div>
+    <div class="actions"><button class="primary" id="add">+ پرسیارێکی نوێ</button></div>
+
+    <h2>واژووەکانی کۆتایی</h2>
+    <label for="sig1">مامۆستای ئەندام (لای ڕاست)</label>
+    <input id="sig1" value="تـــوانا قادر صـالـــح">
+    <label for="sig2">مامۆستای ئەندام (ناوەڕاست)</label>
+    <input id="sig2" value="ئاســـۆ جلال">
+    <label for="sig3">مامۆستای بابەت (لای چەپ)</label>
+    <input id="sig3" value="ئاســـۆ جلال">
+
+    <div class="total"><span>کۆی نمرە</span><span id="total">0</span></div>
+    <div class="total" style="font-weight:400"><span>لاپەڕەکان (زۆرینە ٢)</span><span id="pages"></span></div>
+    <div id="fitbox" class="fitbox" hidden>
+      <p>ئاگاداری: پرسیارەکان لە دوو لاپەڕەدا جێ نابنەوە. ڕێگەم دەدەیت فۆنتەکە بە گوێرەی پێویست بچووک بکەمەوە؟</p>
+      <div class="actions" style="margin-top:8px"><button class="primary" id="shrinkYes">بەڵێ، بچووکی بکەرەوە</button><button id="shrinkNo">نا، وەک خۆی بێت</button></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="pdf">دابەزاندن وەک PDF</button>
+      <button id="clear">پاککردنەوە</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 0">لە پەنجەرەی چاپکردن، «Save as PDF» هەڵبژێرە. زانیارییەکان خۆکارانە لە وێبگەڕەکەتدا دەپارێزرێن.</p>
+  </section>
+
+  <section class="panel preview">
+    <div class="paper" id="paper"><table class="sheet"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td id="content"></td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fields = ['school','title','subject','grade','year','date','time','note','sig1','sig2','sig3'];
+let questions = [{text:'',mark:''}];
+
+function save(){
+  try{
+    const d = {questions};
+    fields.forEach(f => d[f] = $(f).value);
+    localStorage.setItem('examBuilder', JSON.stringify(d));
+  }catch(e){}
+}
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem('examBuilder')||'null');
+    if(!d) return;
+    fields.forEach(f => $(f).value = d[f] !== undefined ? d[f] : $(f).defaultValue);
+    if(Array.isArray(d.questions) && d.questions.length) questions = d.questions;
+  }catch(e){}
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const n = v => { const x = parseFloat(v); return isNaN(x) ? 0 : x; };
+
+const LB = ['أ','ب','ج','د','هـ','و','ز','ح','ط','ی'];
+const subSum = q => (q.subs||[]).reduce((t,x)=>t+n(x.mark),0);
+const qMark = q => (q.mark!=='' && q.mark!=null) ? n(q.mark) : subSum(q);
+
+function renderList(){
+  const box = $('list'); box.innerHTML = '';
+  questions.forEach((q,i)=>{
+    q.subs = q.subs || [];
+    const el = document.createElement('div'); el.className='qitem';
+    el.innerHTML = `
+      <div class="qhead">
+        <b>پرسیاری ${i+1}</b>
+        <button title="بەرەو سەرەوە" data-a="up">↑</button>
+        <button title="بەرەو خوارەوە" data-a="down">↓</button>
+        <button class="del" title="سڕینەوە" data-a="del">✕</button>
+      </div>
+      <textarea placeholder="پرسیارەکە لێرە بنووسە...">${esc(q.text)}</textarea>
+      <div class="row" style="align-items:center;margin-top:6px">
+        <span style="flex:0 0 auto;font-size:13px;color:var(--muted)">نمرە:</span>
+        <input class="qmark" type="number" min="0" step="0.5" value="${esc(q.mark)}" placeholder="${q.subs.length?subSum(q):''}">
+      </div>
+      <div class="subs"></div>
+      <button class="addsub">+ لقێک بۆ ئەم پرسیارە</button>`;
+    el.querySelector('textarea').oninput = e => {q.text=e.target.value; renderPaper(); save();};
+    el.querySelector('.qmark').oninput = e => {q.mark=e.target.value; renderPaper(); save();};
+    const subsBox = el.querySelector('.subs');
+    q.subs.forEach((sb,j)=>{
+      const r = document.createElement('div'); r.className='sub';
+      r.innerHTML = `<span class="lb">${LB[j]||j+1}</span>
+        <input class="st" placeholder="دەقی لقەکە..." value="${esc(sb.text)}">
+        <input class="sm" type="number" min="0" step="0.5" placeholder="نمرە" value="${esc(sb.mark)}">
+        <button class="del" title="سڕینەوەی لق">✕</button>`;
+      r.querySelector('.st').oninput = e => {sb.text=e.target.value; renderPaper(); save();};
+      r.querySelector('.sm').oninput = e => {sb.mark=e.target.value; renderPaper(); save();
+        const qm = el.querySelector('.qmark'); qm.placeholder = subSum(q) || '';};
+      r.querySelector('button').onclick = ()=>{ q.subs.splice(j,1); renderList(); renderPaper(); save(); };
+      subsBox.appendChild(r);
+    });
+    el.querySelector('.addsub').onclick = ()=>{ q.subs.push({text:'',mark:''}); renderList(); renderPaper(); save();
+      const t=$('list').querySelectorAll('.qitem')[i].querySelectorAll('.st'); t[t.length-1].focus(); };
+    el.querySelectorAll('.qhead button').forEach(b=>b.onclick=()=>{
+      const a=b.dataset.a;
+      if(a==='del'){ questions.splice(i,1); if(!questions.length) questions.push({text:'',mark:'',subs:[]}); }
+      if(a==='up' && i>0) [questions[i-1],questions[i]]=[questions[i],questions[i-1]];
+      if(a==='down' && i<questions.length-1) [questions[i+1],questions[i]]=[questions[i],questions[i+1]];
+      renderList(); renderPaper(); save();
+    });
+    box.appendChild(el);
+  });
+}
+
+function renderPaper(){
+  const total = questions.reduce((s,q)=>s+qMark(q),0);
+  $('total').textContent = total;
+  const v = f => $(f).value.trim();
+  const fill = val => val ? `<b>${esc(val)}</b>` : '<span class="fill"></span>';
+  const qs = questions.filter(q=>q.text.trim()||qMark(q)||(q.subs||[]).some(x=>x.text.trim()));
+  const D = x => String(x).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+  let dt = v('date'); if(dt){ const [y,m,d] = dt.split('-'); dt = D(+d)+' / '+D(+m)+' / '+D(y); }
+  $('content').innerHTML = `
+    <div class="p-head">
+      <div class="p-row">
+        <span>قوتابخانەی</span>
+        <span>${esc(v('title')||'پرسیارەکانی کۆتایی ساڵ')}</span>
+        <span>بابەت: ${esc(v('subject'))}</span>
+      </div>
+      <div class="p-row">
+        <span>${esc(v('school')||'ناوی قوتابخانە')}</span>
+        <span>ساڵی خوێندنی ${esc(D(v('year')))}</span>
+        <span>پۆلی: ${esc(v('grade'))}</span>
+      </div>
+      <div class="p-row one">کات: ${esc(D(v('time')))}، ڕێککەوت: ${esc(dt)}</div>
+    </div>
+    ${v('note') ? `<div class="p-note"><b>تێبینی:</b> ${esc(v('note'))}</div>` : ''}
+    ${qs.length ? qs.map((q,i)=>`
+      <div class="p-q">
+        <div class="p-qhead">
+          <div class="p-qtext"><strong>پرسیاری ${questions.indexOf(q)+1}:</strong>${esc(q.text)}</div>
+          <div class="p-mark">${qMark(q)} نمرە</div>
+        </div>
+        ${(q.subs||[]).some(x=>x.text.trim()||n(x.mark)) ? `<div class="p-subs">${q.subs.map((x,j)=>`
+          <div class="p-sub"><div class="t"><strong>${LB[j]||j+1}-</strong> ${esc(x.text)}</div>${n(x.mark)?`<div class="m">(${n(x.mark)} نمرە)</div>`:''}</div>`).join('')}</div>` : ''}
+      </div>`).join('') : '<div class="empty">پرسیارەکان لێرە دەردەکەون</div>'}
+    <div class="p-foot">
+      <div class="p-wish">هیوادارم تەندروست باش و سەرکەوتو بن</div>
+      <div class="p-sigs">
+        <div>${esc(v('sig1'))}<br>مامۆستای ئەندام</div>
+        <div>${esc(v('sig2'))}<br>مامۆستای ئەندام</div>
+        <div>${esc(v('sig3'))}<br>مامۆستای بابەت</div>
+      </div>
+    </div>`;
+}
+
+function fitPreview(){
+  const box = document.querySelector('.preview'), paper = $('paper');
+  paper.style.transform = ''; box.style.height = ''; box.style.overflow = '';
+  const pad = parseFloat(getComputedStyle(box).paddingLeft) || 0;
+  const avail = box.clientWidth - 2*pad, w = paper.offsetWidth;
+  const sc = Math.min(1, avail / w);
+  if(sc < 1){
+    paper.style.transformOrigin = 'top right';
+    paper.style.transform = 'scale(' + sc + ')';
+    box.style.overflow = 'hidden';
+    box.style.height = (paper.offsetHeight * sc + 2*pad) + 'px';
+  }
+}
+window.addEventListener('resize', fitPreview);
+const MM = 96/25.4, PAGE = 269*MM, CAP = (2*269-26)*MM;
+const _rp = renderPaper;
+let allowShrink = null; // null = ask, true = allowed, false = declined
+renderPaper = function(){
+  _rp();
+  const paper = $('paper'), c = $('content'); let k = 1;
+  paper.style.setProperty('--k', k);
+  const fits = c.scrollHeight <= CAP;
+  if(fits) allowShrink = null;
+  if(!fits && allowShrink === true){
+    while(c.scrollHeight > CAP && k > 0.66){ k = +(k-0.03).toFixed(2); paper.style.setProperty('--k', k); }
+  }
+  const H = c.scrollHeight, over = H > CAP;
+  const pages = Math.max(1, Math.ceil(H/PAGE));
+  $('fitbox').hidden = !(over && allowShrink === null);
+  const el = $('pages');
+  el.textContent = over ? 'زیاتر لە ٢ لاپەڕە' : (pages + (k<1 ? ' (نووسین بچووککرایەوە)' : ''));
+  el.style.color = over ? 'var(--danger)' : '';
+  window.__over = over;
+  fitPreview();
+};
+$('shrinkYes').onclick = ()=>{ allowShrink = true; renderPaper(); };
+$('shrinkNo').onclick = ()=>{ allowShrink = false; renderPaper(); };
+
+fields.forEach(f => $(f).addEventListener('input', ()=>{renderPaper(); save();}));
+$('add').onclick = ()=>{ questions.push({text:'',mark:'',subs:[]}); renderList(); renderPaper(); save();
+  const t=$('list').querySelectorAll('.qitem > textarea'); t[t.length-1].focus(); };
+$('clear').onclick = ()=>{ if(!confirm('هەموو زانیارییەکان دەسڕێنەوە؟')) return;
+  fields.forEach(f=>$(f).value=$(f).defaultValue); questions=[{text:'',mark:'',subs:[]}]; renderList(); renderPaper(); save(); };
+$('pdf').onclick = ()=>{ if(window.__over && !confirm('پرسیارەکان لە دوو لاپەڕە زیاترن. دەتەوێت هەر بەردەوام بیت؟')) return; const old=document.title;
+  document.title = ($('title').value.trim()||'exam');
+  window.print(); document.title = old; };
+
+load(); renderList(); renderPaper();
+</script>
+
+<script id="blbaz-lock-script">
+(function(){
+  const PASSWORD = "blbaz";
+  const KEY = "BLBAZ_UNLOCKED";
+  function lock(){
+    const g=document.getElementById("blbazLock");
+    if(g) g.style.display = localStorage.getItem(KEY)==="1" ? "none" : "flex";
+  }
+  window.blbazUnlock=function(){
+    const v=document.getElementById("blbazPass").value;
+    const e=document.getElementById("blbazErr");
+    if(v===PASSWORD){
+      localStorage.setItem(KEY,"1");
+      document.getElementById("blbazLock").style.display="none";
+      e.style.display="none";
+    }else{
+      e.style.display="block";
+    }
+  };
+  document.addEventListener("DOMContentLoaded", function(){
+    lock();
+    const p=document.getElementById("blbazPass");
+    if(p) p.addEventListener("keydown", function(e){ if(e.key==="Enter") blbazUnlock(); });
+  });
+})();
+</script>
+</body>
+</html>
